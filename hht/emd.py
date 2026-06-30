@@ -3,7 +3,7 @@ from scipy.interpolate import CubicSpline
 
 
 def _find_extrema(signal):
-    """Return indices of local maxima and minima."""
+    """Acha os índices dos máximos e mínimos locais do sinal."""
     n = len(signal)
     maxima, minima = [], []
     for i in range(1, n - 1):
@@ -15,7 +15,7 @@ def _find_extrema(signal):
 
 
 def _mirror_pad(indices, values, n):
-    """Extend extrema arrays with mirrored endpoints to reduce edge effects."""
+    """Espelha um extremo em cada ponta para diminuir o efeito de borda."""
     if len(indices) < 2:
         return indices, values
 
@@ -30,7 +30,7 @@ def _mirror_pad(indices, values, n):
 
 
 def _envelope(signal, indices, values):
-    """Cubic spline envelope through the given extrema."""
+    """Envelope por spline cúbica passando pelos extremos dados."""
     t = np.arange(len(signal))
     if len(indices) < 4:
         return np.full(len(signal), np.mean(values))
@@ -39,7 +39,7 @@ def _envelope(signal, indices, values):
 
 
 def _is_imf(signal, upper_env, lower_env, tol=0.2):
-    """Check IMF stopping criterion: mean envelope ≈ 0."""
+    """Critério de parada do sifting: média dos envelopes perto de zero."""
     mean_env = (upper_env + lower_env) / 2
     sd = np.sum(mean_env ** 2) / (np.sum(signal ** 2) + 1e-12)
     return sd < tol
@@ -51,10 +51,9 @@ def _is_monotonic(signal):
 
 
 def _sift(signal, sd_threshold=0.2, max_iter=100):
-    """
-    Extract one IMF from signal via the sifting process.
+    """Extrai uma IMF do sinal pelo processo de peneiramento (sifting).
 
-    Returns the IMF as an array of the same length as signal.
+    Retorna a IMF com o mesmo tamanho do sinal de entrada.
     """
     h = signal.copy()
     n = len(h)
@@ -82,24 +81,12 @@ def _sift(signal, sd_threshold=0.2, max_iter=100):
 
 
 def emd(signal, max_imfs=None, sd_threshold=0.2):
-    """
-    Empirical Mode Decomposition.
+    """Decomposição Empírica de Modos (EMD).
 
-    Decomposes `signal` into a list of IMFs and a residue such that
-    sum(imfs) + residue == signal (up to floating-point precision).
-
-    Parameters
-    ----------
-    signal : array-like, shape (N,)
-    max_imfs : int or None
-        Maximum number of IMFs to extract. None means extract all.
-    sd_threshold : float
-        Stopping criterion for the sifting process.
-
-    Returns
-    -------
-    imfs : list of ndarray, each shape (N,)
-    residue : ndarray, shape (N,)
+    Quebra o sinal numa lista de IMFs mais um resíduo, de forma que a soma das
+    IMFs com o resíduo reconstrói o sinal original (a menos de erro numérico).
+    Com max_imfs=None, extrai todas as IMFs possíveis; sd_threshold é o critério
+    de parada do sifting.
     """
     signal = np.asarray(signal, dtype=float)
     residue = signal.copy()

@@ -3,17 +3,10 @@ from .hht import hht
 
 
 def marginal_energy(amplitudes, window_size):
-    """
-    Smoothed instantaneous energy per IMF via a moving-average of A²(t).
+    """Energia instantânea suavizada de cada IMF.
 
-    Parameters
-    ----------
-    amplitudes  : ndarray, shape (n_imfs, N)
-    window_size : int — number of samples for the moving average
-
-    Returns
-    -------
-    energy : ndarray, shape (n_imfs, N)
+    Faz uma média móvel de A²(t) com janela de window_size amostras, devolvendo
+    um perfil de energia por IMF ao longo do tempo.
     """
     kernel = np.ones(window_size) / window_size
     energy = np.zeros_like(amplitudes)
@@ -25,30 +18,16 @@ def marginal_energy(amplitudes, window_size):
 
 def detect_insertion(signal, fs, threshold_factor=3.0, window_size=None,
                      n_high_imfs=3, max_imfs=8):
-    """
-    Detect the time instant at which a non-linear load was switched in.
+    """Detecta o instante em que uma carga não linear entrou no circuito.
 
-    Algorithm
-    ---------
-    1. Run the full HHT on the signal.
-    2. Compute marginal energy for each IMF.
-    3. Sum energy of the first `n_high_imfs` IMFs (high-frequency content).
-    4. Estimate baseline statistics from the first 20% of the signal.
-    5. Return the first sample where energy > μ + threshold_factor·σ.
+    A ideia: rodar a HHT, somar a energia marginal das IMFs de alta frequência
+    (as primeiras n_high_imfs, que carregam os harmônicos e transientes) e olhar
+    onde essa energia dispara. A linha de base (média mu e desvio sigma) é
+    estimada nos primeiros 20% do sinal, assumidos como trecho estacionário.
+    O instante detectado é a primeira amostra onde a energia passa de
+    mu + threshold_factor*sigma.
 
-    Parameters
-    ----------
-    signal           : array-like, shape (N,)
-    fs               : float — sampling frequency in Hz
-    threshold_factor : float — sensitivity (lower → more sensitive)
-    window_size      : int or None — moving-average window (default fs//60)
-    n_high_imfs      : int — number of high-frequency IMFs to aggregate
-    max_imfs         : int — max IMFs extracted by EMD
-
-    Returns
-    -------
-    t_seconds    : float or None — insertion time in seconds
-    sample_index : int or None — insertion sample index
+    Retorna (t em segundos, índice da amostra) ou (None, None) se não achar nada.
     """
     signal = np.asarray(signal, dtype=float)
     n = len(signal)

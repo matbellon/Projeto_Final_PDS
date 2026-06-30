@@ -3,29 +3,14 @@ from .hilbert import hilbert_transform, hilbert_spectrum
 
 
 def hht(signal, fs, max_imfs=None, sd_threshold=0.2, n_freqs=256):
-    """
-    Hilbert-Huang Transform.
+    """Transformada de Hilbert-Huang.
 
-    Applies EMD followed by the Hilbert transform and assembles the
-    Hilbert spectrum. Works on signals of any length.
+    Junta os três passos: EMD para tirar as IMFs, transformada de Hilbert para
+    pegar amplitude e frequência instantâneas, e a montagem do espectro de
+    Hilbert. Funciona com sinais de qualquer tamanho.
 
-    Parameters
-    ----------
-    signal       : array-like, shape (N,)
-    fs           : float — sampling frequency in Hz
-    max_imfs     : int or None — maximum number of IMFs (None = all)
-    sd_threshold : float — sifting stopping criterion
-    n_freqs      : int — frequency resolution of the Hilbert spectrum
-
-    Returns
-    -------
-    imfs       : list of ndarray, each shape (N,)
-    residue    : ndarray, shape (N,)
-    amplitudes : ndarray, shape (n_imfs, N) — instantaneous amplitude
-    inst_freqs : ndarray, shape (n_imfs, N) — instantaneous frequency (Hz)
-    H          : ndarray, shape (n_freqs, N) — Hilbert spectrum
-    time_axis  : ndarray, shape (N,) — seconds
-    freq_axis  : ndarray, shape (n_freqs,) — Hz
+    Devolve, nesta ordem: imfs, resíduo, amplitudes, frequências instantâneas,
+    espectro H e os eixos de tempo e frequência.
     """
     imfs, residue = emd(signal, max_imfs=max_imfs, sd_threshold=sd_threshold)
     amplitudes, inst_freqs = hilbert_transform(imfs, fs)
